@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Klyro — Email Campaign Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a28;
+      --border: rgba(255,255,255,0.07);
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -30%;
+      left: -20%;
+      width: 80%;
+      height: 80%;
+      background: radial-gradient(ellipse, rgba(108,99,255,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 36px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #fff, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo span {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.3s;
+    }
+
+    .status-dot.running {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── Stat Cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 700px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+
+    .stat-card:hover { border-color: rgba(108,99,255,0.3); }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-value.green { color: var(--green); }
+    .stat-value.red { color: var(--red); }
+    .stat-value.yellow { color: var(--yellow); }
+    .stat-value.accent { color: var(--accent2); }
+
+    /* ── Controls ── */
+    .controls {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .controls h2 {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .subject-input {
+      flex: 1;
+      min-width: 220px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .subject-input:focus { border-color: var(--accent); }
+
+    .btn {
+      padding: 10px 22px;
+      border-radius: 8px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-start {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
+    }
+
+    .btn-start:hover { box-shadow: 0 0 20px rgba(108,99,255,0.5); }
+
+    .btn-stop {
+      background: rgba(239,68,68,0.15);
+      color: var(--red);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+
+    .btn-stop:hover { background: rgba(239,68,68,0.25); }
+
+    .btn-test {
+      background: rgba(245,158,11,0.12);
+      color: var(--yellow);
+      border: 1px solid rgba(245,158,11,0.25);
+    }
+
+    .btn-test:hover { background: rgba(245,158,11,0.22); }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* ── Log Panel ── */
+    .log-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .log-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .log-header h2 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .log-tabs {
+      display: flex;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      padding: 5px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .log-body {
+      height: 440px;
+      overflow-y: auto;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.7;
+    }
+
+    .log-body::-webkit-scrollbar { width: 4px; }
+    .log-body::-webkit-scrollbar-track { background: transparent; }
+    .log-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    .log-line {
+      display: flex;
+      gap: 12px;
+      padding: 2px 0;
+      border-radius: 4px;
+      transition: background 0.1s;
+    }
+
+    .log-line:hover { background: rgba(255,255,255,0.04); }
+
+    .log-time {
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-size: 0.72rem;
+    }
+
+    .log-msg { color: var(--text); word-break: break-all; }
+    .log-msg.success { color: var(--green); }
+    .log-msg.failed { color: var(--red); }
+    .log-msg.skip { color: var(--yellow); }
+    .log-msg.info { color: var(--accent2); }
+    .log-msg.err { color: var(--red); opacity: 0.8; }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: var(--muted);
+      gap: 8px;
+    }
+
+    .empty-state .icon { font-size: 2rem; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 0.875rem;
+      display: none;
+      z-index: 9999;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">✉️</div>
+        <div>
+          <h1>Klyro</h1>
+          <span>Email Campaign Dashboard</span>
+        </div>
+      </div>
+      <div class="status-pill">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Idle</span>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">✅ Sent</div>
+        <div class="stat-value green" id="statSent">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">❌ Failed</div>
+        <div class="stat-value red" id="statFailed">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">⏭ Skipped</div>
+        <div class="stat-value yellow" id="statSkipped">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">📋 Log Entries</div>
+        <div class="stat-value accent" id="statTotal">0</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <h2>Controls</h2>
+      <div class="controls-row">
+        <input id="subjectInput" class="subject-input" type="text"
+          placeholder="Email subject…"
+          value="Enhancing Your Digital Presence" />
+        <button class="btn btn-start" id="btnStart" onclick="startSend()">▶ Start Campaign</button>
+        <button class="btn btn-stop" id="btnStop" onclick="stopSend()" disabled>■ Stop</button>
+        <button class="btn btn-test" id="btnTest" onclick="testSend()">🧪 Test Send</button>
+      </div>
+    </div>
+
+    <!-- Log Panel -->
+    <div class="log-panel">
+      <div class="log-header">
+        <h2>📡 Live Logs</h2>
+        <div class="log-tabs">
+          <button class="tab-btn active" id="tabLive" onclick="switchTab('live')">Live</button>
+          <button class="tab-btn" id="tabFile" onclick="switchTab('file')">Sent Log</button>
+        </div>
+      </div>
+      <div class="log-body" id="logBody">
+        <div class="empty-state">
+          <div class="icon">⚡</div>
+          <div>Start a campaign to see live logs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    let activeTab = 'live';
+    let autoScroll = true;
+    let pollInterval = null;
+
+    function formatTime(isoStr) {
+      if (!isoStr) return '';
+      return new Date(isoStr).toLocaleTimeString();
+    }
+
+    function classifyMsg(msg) {
+      if (msg.includes('SUCCESS') || msg.includes('Successfully') || msg.includes('✓')) return 'success';
+      if (msg.includes('FAILED') || msg.includes('Failed') || msg.includes('[ERR]') || msg.includes('Error')) return 'failed';
+      if (msg.includes('Skipping') || msg.includes('skipped') || msg.includes('⏭')) return 'skip';
+      if (msg.startsWith('▶') || msg.startsWith('■') || msg.startsWith('🧪')) return 'info';
+      if (msg.includes('[ERR]')) return 'err';
+      return '';
+    }
+
+    function renderLogs(lines) {
+      const body = document.getElementById('logBody');
+      if (!lines || lines.length === 0) {
+        body.innerHTML = '<div class="empty-state"><div class="icon">⚡</div><div>No logs yet — start a campaign!</div></div>';
+        return;
+      }
+      body.innerHTML = lines.map(l => `
+        <div class="log-line">
+          <span class="log-time">${formatTime(l.ts)}</span>
+          <span class="log-msg ${classifyMsg(l.msg)}">${escHtml(l.msg)}</span>
+        </div>`).join('');
+      if (autoScroll) body.scrollTop = body.scrollHeight;
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    async function poll() {
+      try {
+        const [statusRes, logsRes] = await Promise.all([
+          fetch('/api/status'),
+          fetch('/api/logs')
+        ]);
+        const status = await statusRes.json();
+        const logs = await logsRes.json();
+
+        // Update status
+        const dot = document.getElementById('statusDot');
+        const txt = document.getElementById('statusText');
+        if (status.isRunning) {
+          dot.className = 'status-dot running';
+          txt.textContent = 'Running…';
+        } else {
+          dot.className = 'status-dot';
+          txt.textContent = 'Idle';
+        }
+
+        // Update stats
+        document.getElementById('statSent').textContent = status.stats.success;
+        document.getElementById('statFailed').textContent = status.stats.failed;
+        document.getElementById('statSkipped').textContent = status.stats.skipped;
+
+        // Update buttons
+        document.getElementById('btnStart').disabled = status.isRunning;
+        document.getElementById('btnTest').disabled = status.isRunning;
+        document.getElementById('btnStop').disabled = !status.isRunning;
+
+        // Render logs
+        if (activeTab === 'live') {
+          document.getElementById('statTotal').textContent = logs.live.length;
+          renderLogs(logs.live);
+        } else {
+          document.getElementById('statTotal').textContent = logs.file.length;
+          renderLogs(logs.file);
+        }
+      } catch(e) {
+        console.error('Poll error:', e);
+      }
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      document.getElementById('tabLive').className = 'tab-btn' + (tab === 'live' ? ' active' : '');
+      document.getElementById('tabFile').className = 'tab-btn' + (tab === 'file' ? ' active' : '');
+      poll();
+    }
+
+    function showToast(msg, duration = 3000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', duration);
+    }
+
+    async function startSend() {
+      const subject = document.getElementById('subjectInput').value.trim();
+      const res = await fetch('/api/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject })
+      });
+      const data = await res.json();
+      if (res.ok) showToast('🚀 Campaign started!');
+      else showToast('⚠ ' + data.error);
+    }
+
+    async function stopSend() {
+      const res = await fetch('/api/stop', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) showToast('■ Stopped.');
+      else showToast('⚠ ' + data.error);
+    }
+
+    async function testSend() {
+      const subject = document.getElementById('subjectInput').value.trim();
+      const res = await fetch('/api/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject })
+      });
+      const data = await res.json();
+      if (res.ok) showToast('🧪 Test emails sending…');
+      else showToast('⚠ ' + data.error);
+    }
+
+    // Auto-scroll tracking
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('logBody').addEventListener('scroll', function() {
+        autoScroll = this.scrollTop + this.clientHeight >= this.scrollHeight - 30;
+      });
+      poll();
+      pollInterval = setInterval(poll, 2000);
+    });
+  </script>
+</body>
+</html>
