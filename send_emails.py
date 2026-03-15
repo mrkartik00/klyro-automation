@@ -8,13 +8,14 @@ import os
 import datetime
 
 def load_env(env_path):
-    env_vars = {}
+    # Start with actual OS environment variables (set by Render, Docker, etc.)
+    env_vars = dict(os.environ)
+    # Override/extend with values from .env file if it exists (local development)
     if os.path.exists(env_path):
         with open(env_path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#'):
-                    # Some lines might not have an equals sign
                     if '=' in line:
                         key, value = line.split('=', 1)
                         env_vars[key.strip()] = value.strip()
