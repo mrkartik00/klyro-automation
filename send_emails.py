@@ -70,7 +70,7 @@ def main():
     parser.add_argument('--subject', type=str, default="Enhancing Your Digital Presence", help="Subject of the email.")
     args = parser.parse_args()
 
-    base_dir = '/Users/kartik./Developer/automations/klyro'
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     env_path = os.path.join(base_dir, '.env')
     email_txt_path = os.path.join(base_dir, 'email.txt')
     attachment_path = os.path.join(base_dir, 'attachment.jpg')
