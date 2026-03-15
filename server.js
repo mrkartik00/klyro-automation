@@ -3,10 +3,26 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
+const { execSync } = require('child_process');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const BASE_DIR = __dirname;
 const LOG_FILE = path.join(BASE_DIR, 'sent_emails_log.txt');
+
+// Detect python command (python3 or python)
+let PYTHON_CMD = 'python3';
+try {
+  execSync('python3 --version', { stdio: 'ignore' });
+} catch {
+  try {
+    execSync('python --version', { stdio: 'ignore' });
+    PYTHON_CMD = 'python';
+  } catch {
+    console.error('WARNING: No python found on this system. Email sending will fail.');
+  }
+}
+console.log(`Using Python command: ${PYTHON_CMD}`);
 
 app.use(express.json());
 app.use(express.static(path.join(BASE_DIR, 'public')));
@@ -58,7 +74,7 @@ app.post('/api/start', (req, res) => {
   liveLogBuffer = [];
   stats = { success: 0, failed: 0, skipped: 0, total: 0 };
 
-  emailProcess = spawn('python3', args, {
+  emailProcess = spawn(PYTHON_CMD, ['-u', ...args], {
     cwd: BASE_DIR,
     env: { ...process.env },
   });
@@ -104,7 +120,7 @@ app.post('/api/test', (req, res) => {
   const args = [path.join(BASE_DIR, 'send_emails.py'), '--test', '--subject', subject];
 
   liveLogBuffer = [];
-  emailProcess = spawn('python3', args, { cwd: BASE_DIR, env: { ...process.env } });
+  emailProcess = spawn(PYTHON_CMD, ['-u', ...args], { cwd: BASE_DIR, env: { ...process.env } });
   isRunning = true;
   addLog(`🧪 Running TEST send | Subject: "${subject}"`);
 

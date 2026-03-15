@@ -3,7 +3,7 @@ services:
     name: klyro-email-server
     runtime: node
     region: singapore
-    buildCommand: npm install
+    buildCommand: "apt-get update && apt-get install -y python3 && npm install"
     startCommand: node server.js
     envVars:
       - key: NODE_ENV

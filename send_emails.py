@@ -6,6 +6,7 @@ import random
 import argparse
 import os
 import datetime
+import sys
 
 def load_env(env_path):
     # Start with actual OS environment variables (set by Render, Docker, etc.)
